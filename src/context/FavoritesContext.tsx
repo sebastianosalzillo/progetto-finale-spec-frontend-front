@@ -9,12 +9,12 @@ type FavoritesContextType = {
 const FavoritesContext = createContext<FavoritesContextType | null>(null);
 
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
-  const [favorites, setFavorites] = useState<number[]>([]);
-
-  useEffect(() => {
+  const [favorites, setFavorites] = useState<number[]>(() => {
     const stored = localStorage.getItem("favorites");
-    if (stored) setFavorites(JSON.parse(stored));
-  }, []);
+    if (stored) return JSON.parse(stored);
+    return [];
+  });
+
 
   useEffect(() => {
     localStorage.setItem("favorites", JSON.stringify(favorites));
