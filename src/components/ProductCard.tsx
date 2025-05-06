@@ -38,7 +38,10 @@ export default function ProductCard({ product }: Props) {
               <button className="btn btn-outline-primary btn-sm" onClick={handleCompare}>
                 Confronta
               </button>
-              <button className="btn btn-outline-warning btn-sm" onClick={() => toggleFavorite(product.id)}>
+              <button className="btn btn-outline-warning btn-sm" onClick={() => toggleFavorite({
+                id: product.id,
+                title: product.title
+              })}>
                 {isFavorite(product.id) ? "★" : "☆"} Preferito
               </button>
             </div>
