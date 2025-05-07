@@ -71,13 +71,13 @@ export default function HomePage() {
 
       {/* LISTA PRODOTTI */}
       <div className="row">
-        {products.map((p) => (
+        {products. length > 0 ? products.map((p) => (
           <div className="col-md-6" key={p.id}>
             <ProductCard
               product={p}
             />
           </div>
-        ))}
+        )) : <h2>Errore prodotti non trovati</h2>}
       </div>
     </div>
   );

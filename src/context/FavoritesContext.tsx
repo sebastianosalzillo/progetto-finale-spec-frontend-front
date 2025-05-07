@@ -1,36 +1,38 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-type Favorite = {
-  id : number,
-  title : string
-}
-type FavoritesContextType = {
-  favorites: Favorite [];
-  toggleFavorite: (favorite : Favorite) => void;
+export type Favorite = {
+  id: number;
+  title: string;
+};
+
+export type FavoritesContextType<T> = {
+  favorites: T[];
+  toggleFavorite: (item: T) => void;
   isFavorite: (id: number) => boolean;
 };
 
-const FavoritesContext = createContext<FavoritesContextType | null>(null);
+const FavoritesContext = createContext<FavoritesContextType<Favorite> | null>(null);
 
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   const [favorites, setFavorites] = useState<Favorite[]>(() => {
     const stored = localStorage.getItem("favorites");
-    if (stored) return JSON.parse(stored);
-    return [];
+    return stored ? JSON.parse(stored) : [];
   });
-
 
   useEffect(() => {
     localStorage.setItem("favorites", JSON.stringify(favorites));
   }, [favorites]);
 
-  const toggleFavorite = (favorite : Favorite ) => {
+  const toggleFavorite = (item: Favorite) => {
     setFavorites((prev) =>
-      prev.some(item => item.id === favorite.id) ? prev.filter(item => item.id !== favorite.id) : [...prev , favorite]
+      prev.some(fav => fav.id === item.id)
+        ? prev.filter(fav => fav.id !== item.id)
+        : [...prev, item]
     );
   };
 
-  const isFavorite = (id: number) => favorites.some(item => item.id === id);
+  const isFavorite = (id: number) =>
+    favorites.some(item => item.id === id);
 
   return (
     <FavoritesContext.Provider value={{ favorites, toggleFavorite, isFavorite }}>
@@ -44,4 +46,3 @@ export function useFavorites() {
   if (!context) throw new Error("useFavorites must be used within FavoritesProvider");
   return context;
 }
-

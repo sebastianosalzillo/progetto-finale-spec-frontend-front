@@ -26,6 +26,10 @@ export default function ProductDetail() {
         navigate("/compare");
     };
 
+    const handleToggleFavorite = () => {
+        toggleFavorite({ id: product.id, title: product.title });
+    };
+
     return (
         <div className="container mt-4">
             <Link to="/" className="btn btn-secondary mb-3">&larr; Torna alla lista</Link>
@@ -63,7 +67,7 @@ export default function ProductDetail() {
                             <div className="d-flex gap-3 mt-4">
                                 <button
                                     className="btn btn-outline-warning"
-                                    onClick={() => toggleFavorite(product.id)}
+                                    onClick={handleToggleFavorite}
                                 >
                                     {isFavorite(product.id) ? "★ Rimuovi dai preferiti" : "☆ Aggiungi ai preferiti"}
                                 </button>
