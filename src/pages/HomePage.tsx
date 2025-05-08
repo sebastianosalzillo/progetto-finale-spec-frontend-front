@@ -10,24 +10,35 @@ export default function HomePage() {
   const [order, setOrder] = useState<"asc" | "desc">("asc");
 
 
-
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       fetch(`http://localhost:3001/products?search=${search}&category=${category}`)
-        .then((res) => res.json())
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error("Errore nella risposta del server");
+          }
+          return res.json();
+        })
         .then((data) => {
           let sorted = [...data];
           sorted.sort((a, b) => {
-            const aVal = a[sort].toLowerCase();
-            const bVal = b[sort].toLowerCase();
-            return order === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+            const aVal = a[sort]?.toLowerCase?.() ?? "";
+            const bVal = b[sort]?.toLowerCase?.() ?? "";
+            return order === "asc"
+              ? aVal.localeCompare(bVal)
+              : bVal.localeCompare(aVal);
           });
           setProducts(sorted);
+        })
+        .catch((err) => {
+          console.error("Errore nella fetch dei prodotti:", err);
+          setProducts([]); 
         });
     }, 500);
-
+  
     return () => clearTimeout(delayDebounce);
   }, [search, category, sort, order]);
+  
 
 
 
