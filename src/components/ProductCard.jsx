@@ -1,24 +1,29 @@
-import { Product } from "../types";
 import { useFavorites } from "../context/FavoritesContext";
 import { useCompare } from "../context/CompareContext";
 import { useNavigate, Link } from "react-router-dom";
 
-type Props = {
-  product: Product;
-};
-
-export default function ProductCard({ product }: Props) {
+export default function ProductCard({ product }) {
   const { toggleFavorite, isFavorite } = useFavorites();
   const { addToCompare } = useCompare();
   const navigate = useNavigate();
 
-  const handleCompare = () => {
-    addToCompare(product.id);
-    navigate("/compare");
+  const handleCompare = async () => {
+    try {
+      const res = await fetch(`http://localhost:3001/products/${product.id}`);
+      const data = await res.json();
+      if (data && data.product) {
+        addToCompare(data.product);
+        navigate("/compare");
+      } else {
+        console.error("Prodotto non trovato");
+      }
+    } catch (error) {
+      console.error("Errore nella fetch del prodotto per confronto:", error);
+    }
   };
 
   return (
-    <div className="card mb-3" style={{ maxWidth: '540px' }}>
+    <div className="card mb-3" style={{ maxWidth: "540px" }}>
       <div className="row g-0">
         {product.imageUrl && (
           <div className="col-md-4">
@@ -38,10 +43,10 @@ export default function ProductCard({ product }: Props) {
               <button className="btn btn-outline-primary btn-sm" onClick={handleCompare}>
                 Confronta
               </button>
-              <button className="btn btn-outline-warning btn-sm" onClick={() => toggleFavorite({
-                id: product.id,
-                title: product.title
-              })}>
+              <button
+                className="btn btn-outline-warning btn-sm"
+                onClick={() => toggleFavorite({ id: product.id, title: product.title })}
+              >
                 {isFavorite(product.id) ? "★" : "☆"} Preferito
               </button>
             </div>

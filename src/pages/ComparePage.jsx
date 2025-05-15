@@ -1,35 +1,27 @@
 import { useEffect, useState } from "react";
-import { Product } from "../types";
 import { useCompare } from "../context/CompareContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function ComparePage() {
   const { selected, clearCompare, addToCompare } = useCompare();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [firstProduct, setFirstProduct] = useState<Product | null>(null);
-  const [secondProduct, setSecondProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState([]);
+  const navigate = useNavigate();
+
+  const firstProduct = selected[0] || null;
+  const secondProduct = selected[1] || null;
 
   useEffect(() => {
-    fetch("http://localhost:3001/products")
-      .then((res) => res.json())
-      .then(setProducts);
-  }, []);
-
-  useEffect(() => {
-    if (selected[0]) {
-      fetch(`http://localhost:3001/products/${selected[0]}`)
+    if (selected.length === 1) {
+      fetch("http://localhost:3001/products")
         .then((res) => res.json())
-        .then((data) => setFirstProduct(data.product));
-    } else setFirstProduct(null);
-
-    if (selected[1]) {
-      fetch(`http://localhost:3001/products/${selected[1]}`)
-        .then((res) => res.json())
-        .then((data) => setSecondProduct(data.product));
-    } else setSecondProduct(null);
+        .then(setProducts)
+        .catch((err) => console.error("Errore nel fetch dei prodotti:", err));
+    }
   }, [selected]);
 
-  const renderField = (label: string, value1: any, value2: any) => (
+  const secondOptions = products.filter(p => p.id !== firstProduct?.id);
+
+  const renderField = (label, value1, value2) => (
     <tr>
       <th style={{ width: "30%" }}>{label}</th>
       <td>{value1 ?? "—"}</td>
@@ -37,7 +29,10 @@ export default function ComparePage() {
     </tr>
   );
 
-  const secondOptions = products.filter(p => p.id !== selected[0]);
+  const handleReset = () => {
+    clearCompare();
+    navigate("/");
+  };
 
   return (
     <div className="container mt-4">
@@ -45,23 +40,26 @@ export default function ComparePage() {
         <h2>Confronto prodotti</h2>
         <div>
           <Link to="/" className="btn btn-secondary me-2">← Torna alla Home</Link>
-          <button className="btn btn-outline-danger" onClick={clearCompare}>
+          <button className="btn btn-outline-danger" onClick={handleReset}>
             🔁 Resetta confronto
           </button>
         </div>
       </div>
 
-      {/* Se manca il secondo prodotto, mostra il selettore */}
       {selected.length === 1 && (
         <div className="alert alert-info d-flex flex-column flex-md-row justify-content-between align-items-center">
           <span>Hai selezionato: <strong>{firstProduct?.title}</strong></span>
-          <div className="mt-2 mt-md-0">
-            <label className="me-2">Scegli il secondo prodotto:</label>
+          <div className="mt-3 mt-md-0 d-flex align-items-center gap-2">
+            <label className="me-2 mb-0">Scegli il secondo prodotto:</label>
             <select
               className="form-select d-inline-block w-auto"
-              onChange={(e) => {
+              onChange={async (e) => {
                 const secondId = Number(e.target.value);
-                if (secondId) addToCompare(secondId);
+                if (secondId) {
+                  const res = await fetch(`http://localhost:3001/products/${secondId}`);
+                  const data = await res.json();
+                  addToCompare(data.product);
+                }
               }}
             >
               <option value="">-- Seleziona --</option>
@@ -73,7 +71,6 @@ export default function ComparePage() {
         </div>
       )}
 
-      {/* Mostra il confronto affiancato se entrambi i prodotti sono selezionati */}
       {firstProduct && secondProduct && (
         <div className="table-responsive">
           <table className="table table-bordered align-middle text-center">
